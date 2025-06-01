@@ -53,6 +53,7 @@ class InvoiceController extends Controller
             if ($request->status != null) {
                 $query->where('status', '=', $request->status);
             }
+            $query->orderBy('issue_date', 'desc');
             $invoices = $query->get();
 
             return view('invoice.index', compact('invoices', 'customer', 'status'));
@@ -70,10 +71,14 @@ class InvoiceController extends Controller
             $customers->prepend('Select Customer', '');
             $category = ProductServiceCategory::where('created_by', \Auth::user()->creatorId())->where('type', 'income')->get()->pluck('name', 'id');
             $category->prepend('Select Category', '');
+
+            $product_category = ProductServiceCategory::where('created_by', \Auth::user()->creatorId())->where('type', 'product & service')->get()->pluck('name', 'id');
+            $product_category->prepend('Select Category', '');
+
             $product_services = ProductService::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $product_services->prepend('--', '');
 
-            return view('invoice.create', compact('customers', 'invoice_number', 'product_services', 'category', 'customFields', 'customerId'));
+            return view('invoice.create', compact('customers', 'invoice_number', 'product_services', 'category', 'product_category', 'customFields', 'customerId'));
         } else {
             return response()->json(['error' => __('Permission denied.')], 401);
         }
@@ -101,6 +106,7 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
+
         if (\Auth::user()->can('create invoice')) {
             $validator = \Validator::make(
                 $request->all(), [
@@ -111,10 +117,12 @@ class InvoiceController extends Controller
                     'items' => 'required',
                 ]
             );
+            
             if ($validator->fails()) {
                 $messages = $validator->getMessageBag();
                 return redirect()->back()->with('error', $messages->first());
             }
+           
             $status = Invoice::$statues;
             $invoice = new Invoice();
             $invoice->invoice_id = $this->invoiceNumber();
@@ -127,22 +135,33 @@ class InvoiceController extends Controller
 //            $invoice->discount_apply = isset($request->discount_apply) ? 1 : 0;
             $invoice->created_by = \Auth::user()->creatorId();
             $invoice->save();
+            
             CustomField::saveData($invoice, $request->customField);
             $products = $request->items;
 
             for ($i = 0; $i < count($products); $i++) {
 
+         
+                
                 $invoiceProduct = new InvoiceProduct();
                 $invoiceProduct->invoice_id = $invoice->id;
                 $invoiceProduct->product_id = $products[$i]['item'];
                 $invoiceProduct->quantity = $products[$i]['quantity'];
-                $invoiceProduct->tax = $products[$i]['tax'];
+                /* $invoiceProduct->tax = $products[$i]['tax']; */
 //                $invoiceProduct->discount    = isset($products[$i]['discount']) ? $products[$i]['discount'] : 0;
                 $invoiceProduct->discount = $products[$i]['discount'];
                 $invoiceProduct->price = $products[$i]['price'];
-                $invoiceProduct->description = $products[$i]['description'];
+                /* $invoiceProduct->description = $products[$i]['description']; */
                 $invoiceProduct->save();
 
+
+                // update product and service
+                    $productService = ProductService::find($products[$i]['item']);
+                    $productService->quantity = $productService->quantity - $products[$i]['quantity'];
+                    $productService->save();
+                //
+
+               
                 //inventory management (Quantity)
                 Utility::total_quantity('minus', $invoiceProduct->quantity, $invoiceProduct->product_id);
 
@@ -219,6 +238,7 @@ class InvoiceController extends Controller
     public function update(Request $request, Invoice $invoice)
     {
 
+
         if (\Auth::user()->can('edit invoice')) {
             if ($invoice->created_by == \Auth::user()->creatorId()) {
                 $validator = \Validator::make(
@@ -254,6 +274,15 @@ class InvoiceController extends Controller
                 for ($i = 0; $i < count($products); $i++) {
                     $invoiceProduct = InvoiceProduct::find($products[$i]['id']);
 
+                    $productService = ProductService::find($products[$i]['item']);
+
+                    $productService->quantity = $productService->quantity + $products[$i]['old_quantity'];
+                    $productService->save();
+
+                   
+                    $productService->quantity = $productService->quantity - $products[$i]['quantity'];
+                    $productService->save();
+
 
                     if ($invoiceProduct == null) {
                         $invoiceProduct = new InvoiceProduct();
@@ -280,10 +309,10 @@ class InvoiceController extends Controller
                     }
 
                     $invoiceProduct->quantity = $products[$i]['quantity'];
-                    $invoiceProduct->tax = $products[$i]['tax'];
+                    /* $invoiceProduct->tax = $products[$i]['tax']; */
                     $invoiceProduct->discount = $products[$i]['discount'];
                     $invoiceProduct->price = $products[$i]['price'];
-                    $invoiceProduct->description = $products[$i]['description'];
+                    /* $invoiceProduct->description = $products[$i]['description']; */
                     $invoiceProduct->save();
 
                     if ($products[$i]['id'] > 0) {
@@ -390,6 +419,22 @@ class InvoiceController extends Controller
 
     public function destroy(Invoice $invoice, Request $request)
     {
+      
+
+                $invoice_products = InvoiceProduct::where('invoice_id', $invoice->id)->get();
+                foreach ($invoice_products as $invoice_product) {
+
+                    $selsQty = $invoice_product->quantity;
+                    
+                    $product = ProductService::find($invoice_product->product_id);
+                    $stock_product = $product->quantity;
+                    $last_stock = $stock_product + $selsQty;
+
+                    $product->quantity =  $last_stock;
+                    $product->save();
+                }
+
+
         if (\Auth::user()->can('delete invoice')) {
             if ($invoice->created_by == \Auth::user()->creatorId()) {
                 foreach ($invoice->payments as $invoices) {
@@ -514,7 +559,16 @@ class InvoiceController extends Controller
 
                 $invoice_products = InvoiceProduct::where('invoice_id', $invoice->id)->get();
                 foreach ($invoice_products as $invoice_product) {
+
+                    $selsQty = $invoice_product->quantity;
+                    
                     $product = ProductService::find($invoice_product->product_id);
+                   /*  $stock_product = $product->quantity;
+                    $last_stock = $stock_product - $selsQty;
+
+                    $product->quantity =  $last_stock;
+                    $product->save(); */
+                   
                     $totalTaxPrice = 0;
                     if($invoice_product->tax != null)
                     {

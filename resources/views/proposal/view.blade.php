@@ -288,9 +288,11 @@
                                                         $totalDiscount += $iteam->discount;
                                                     @endphp
                                                     <td>{{ !empty($productName) ? $productName->name : '' }}</td>
-                                                    <td>{{ $iteam->quantity . ' (' . $productName->unit->name . ')' }}</td>
-                                                    <td>{{\Auth::user()->priceFormat($iteam->price)}}</td>
-                                                    <td>{{\Auth::user()->priceFormat($iteam->discount)}}</td>
+                                                    <td>{{ $iteam->quantity }}</td>
+                                                     
+
+                                                    <td>{{$iteam->price}}</td>
+                                                    <td>{{$iteam->discount}}</td>
                                                     <td>
                                                         @if (!empty($iteam->tax))
                                                             <table>

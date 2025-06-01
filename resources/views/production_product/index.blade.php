@@ -1,0 +1,145 @@
+@extends('layouts.admin')
+@section('page-title')
+    {{__('Production Product')}}
+@endsection
+
+@push('script-page')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+@endpush
+
+@section('breadcrumb')
+    <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{__('Dashboard')}}</a></li>
+    <li class="breadcrumb-item">{{__('Production Product')}}</li>
+@endsection
+
+@section('action-btn')
+    <div class="float-end">
+        <a href="#" data-size="md"  data-bs-toggle="tooltip" title="{{__('Import')}}" data-url="{{ route('productservice.file.import') }}" data-ajax-popup="true" data-title="{{__('Import product CSV file')}}" class="btn btn-sm btn-primary me-1 disabled">
+            <i class="ti ti-file-import"></i>
+        </a>
+
+        <a href="{{route('productservice.export')}}" data-bs-toggle="tooltip" title="{{__('Export')}}" class="btn btn-sm btn-primary me-1 disabled">
+            <i class="ti ti-file-export"></i>
+        </a>
+
+        <a href="#" data-size="lg" data-url="{{ route('production.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" data-bs-original-title="{{__('Create')}}" data-title="{{__('Production Product Input')}}" class="btn btn-sm btn-primary">
+            <i class="ti ti-plus"></i>
+        </a>
+
+    </div>
+@endsection
+
+@section('content')
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" mt-2 {{isset($_GET['category'])?'show':''}}" id="multiCollapseExample1">
+                <div class="card">
+                    <div class="card-body">
+                        {{ Form::open(['route' => ['productservice.index'], 'method' => 'GET', 'id' => 'product_service']) }}
+                        <div class="d-flex align-items-center justify-content-end">
+                            <div class="col-xl-3 col-lg-3 col-md-6 me-1">
+                                <div class="btn-box">
+                                    {{ Form::label('category', __('Category'),['class'=>'form-label']) }}
+                                    {{ Form::select('category', $category, isset($_GET['category']) ? $_GET['category'] : null, ['class' => 'form-control select','id'=>'choices-multiple', 'required' => 'required']) }}
+                                </div>
+                            </div>
+                            <div class="col-auto float-end ms-2 mt-4">
+                                <a href="#" class="btn btn-sm btn-primary me-1"
+                                   onclick="document.getElementById('product_service').submit(); return false;"
+                                   data-bs-toggle="tooltip" title="{{ __('apply') }}">
+                                    <span class="btn-inner--icon"><i class="ti ti-search"></i></span>
+                                </a>
+                                <a href="{{ route('productservice.index') }}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip"
+                                   title="{{ __('Reset') }}">
+                                    <span class="btn-inner--icon"><i class="ti ti-refresh "></i></span>
+                                </a>
+                            </div>
+
+                        </div>
+                        {{ Form::close() }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-body table-border-style">
+                    <div class="table-responsive">
+                        <table class="table datatable">
+                            <thead>
+                            <tr>
+                                <th>{{__('Name')}}</th>
+                                <th>{{__('Production Date')}}</th>
+                                <th>{{__('Shift')}}</th>
+                                @if(\Auth::user()->companyTitle() == 'gio')
+                               
+                                <th>{{__('Thikness')}}</th>
+                                <th>{{__('GSM')}}</th>
+                                <th>{{__('DIA')}}</th>
+                                @endif
+
+                                <th>{{__('Weight')}}</th>
+
+                                @if(\Auth::user()->companyTitle() == 'jut')
+                                <th>{{__('Size')}}</th>
+                                <th>{{__('Proter sort')}}</th>
+                                @endif
+
+                                <th>{{__('Quantity')}}</th>
+                                <th>{{__('Action')}}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach ($products as $productService)
+                                <tr class="font-style">
+                                    <td>{{ $productService->name}}</td>
+                                    <td>{{ date('d-m-Y', strtotime($productService->production_date))}}</td>
+                                    <td>{{ $productService->shift}}</td>
+                                    @if(\Auth::user()->companyTitle() == 'gio')
+                                    
+                                    <td>{{ $productService->thikness}}</td>
+                                    <td>{{ $productService->gsm}}</td>
+                                    <td>{{ $productService->dia}}</td>
+                                    @endif
+
+                                    <td>{{ $productService->weight}}</td>
+                                    @if(\Auth::user()->companyTitle() == 'jut')
+                                    <td>{{ $productService->size}}</td>
+                                    <td>{{ $productService->proter_sort}}</td>
+                                    @endif
+                                    <td>{{ $productService->qty}}</td>
+                                   
+                                    @if(Gate::check('edit product & service') || Gate::check('delete product & service'))
+                                        <td class="Action">
+                                            @can('edit product & service')
+                                                <div class="action-btn me-2">
+                                                    <a href="#" class="mx-3 btn btn-sm  align-items-center bg-info" data-url="{{ route('production.edit',$productService->id) }}" data-ajax-popup="true"  data-size="lg " data-bs-toggle="tooltip" title="{{__('Edit')}}"  data-title="{{__('Edit Product')}}">
+                                                        <i class="ti ti-pencil text-white"></i>
+                                                    </a>
+                                                </div>
+                                            @endcan
+                                            @can('delete product & service')
+                                                <div class="action-btn \">
+                                                    {!! Form::open(['method' => 'DELETE', 'route' => ['production.destroy', $productService->id],'id'=>'delete-form-'.$productService->id]) !!}
+                                                    <a href="#" class="mx-3 btn btn-sm  align-items-center bs-pass-para bg-danger" data-bs-toggle="tooltip" title="{{__('Delete')}}" ><i class="ti ti-trash text-white"></i></a>
+                                                    {!! Form::close() !!}
+                                                </div>
+                                            @endcan
+                                        </td>
+                                    @endif
+                                </tr>
+                            @endforeach
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+

@@ -37,7 +37,7 @@
     $(document).on('click', '.cattype', function ()
     {
         var type = $(this).val();
-        if (type != 'product & service') {
+        if (type != 'product & service' &&  type != 'row product') {
             $('.account').removeClass('d-none')
             $('.account').addClass('d-block');
         } else {

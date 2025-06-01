@@ -33,11 +33,11 @@
                 {{__('Create Invoice')}}
             </a>
         @endcan
-        @can('create proposal')
+       <!--  @can('create proposal')
             <a href="{{ route('proposal.create',$customer->id) }}" class="btn btn-sm btn-primary me-2">
                 {{__('Create Proposal')}}
             </a>
-        @endcan
+        @endcan -->
 
         @can('edit customer')
             <a href="#" data-size="lg" data-url="{{ route('customer.edit',$customer['id']) }}" data-ajax-popup="true" title="{{__('Edit Customer')}}" data-bs-toggle="tooltip" data-original-title="{{__('Edit')}}" class="btn btn-sm btn-primary me-2">
@@ -96,9 +96,9 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-12 ">
             <div class="card pb-0">
-                <div class="card-body">
+                <div class="card-body bg-success">
                     <h5 class="card-title">{{__('Company Info')}}</h5>
 
                     <div class="row">
@@ -135,8 +135,14 @@
                             <div class="p-4">
                                 <p class="card-text mb-0">{{__('Overdue')}}</p>
                                 <h6 class="report-text mb-3">{{\Auth::user()->priceFormat($customer->customerOverdue($customer['id']))}}</h6>
+                                <p class="card-text mb-0">{{__('Total Dues')}}</p>
+                                <h6 class="report-text mb-3">{{\Auth::user()->priceFormat($totalInvoiceSum + $customer['balance'])}}</h6>
+                            
                             </div>
+                            
                         </div>
+                       
+                        
                     </div>
                 </div>
             </div>
@@ -272,7 +278,14 @@
                             </tr>
                             </thead>
                             <tbody>
+                            @php 
+                                $total_due = 0;
+                            @endphp
                             @foreach ($customer->customerInvoice($customer->id) as $invoice)
+
+                            @php 
+                                $total_due += $invoice->getDue()
+                            @endphp
                                 <tr>
                                     <td class="Id">
                                         <a href="{{ route('invoice.show',\Crypt::encrypt($invoice->id)) }}" class="btn btn-outline-primary">{{ AUth::user()->invoiceNumberFormat($invoice->invoice_id) }}
@@ -347,6 +360,16 @@
                                     </tr>
                                 @endforeach
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                <th></th>
+                                <th></th>
+                                <th>Total Dues=</th>
+                                <th>{{\Auth::user()->priceFormat($total_due)}}</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>

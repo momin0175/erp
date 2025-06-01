@@ -306,6 +306,7 @@ class ProposalController extends Controller
 
     public function show($ids)
     {
+      
         if(\Auth::user()->can('show proposal'))
         {
             try {
@@ -313,7 +314,9 @@ class ProposalController extends Controller
             } catch (\Throwable $th) {
                 return redirect()->back()->with('error', __('Proposal Not Found.'));
             }
+           
             $id       = Crypt::decrypt($ids);
+           
             $proposal = Proposal::with(['items.product.unit'])->find($id);
 
             if($proposal->created_by == \Auth::user()->creatorId())
@@ -321,11 +324,12 @@ class ProposalController extends Controller
                 $customer = $proposal->customer;
                 $iteams   = $proposal->items;
                 $status   = Proposal::$statues;
-
+                
                 $proposal->customField = CustomField::getData($proposal, 'proposal');
                 $customFields          = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'proposal')->get();
 
                 return view('proposal.view', compact('proposal', 'customer', 'iteams', 'status', 'customFields'));
+            
             }
             else
             {

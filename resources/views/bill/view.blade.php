@@ -228,7 +228,7 @@
                                 </div>
 
 
-                                @if(!empty($customFields) && count($bill->customField)>0)
+                               <!--  @if(!empty($customFields) && count($bill->customField)>0)
                                     @foreach($customFields as $field)
                                         <div class="col text-md-end">
                                             <small>
@@ -238,7 +238,7 @@
                                             </small>
                                         </div>
                                     @endforeach
-                                @endif
+                                @endif -->
                             </div>
 
                             <div class="row mt-4">
@@ -253,10 +253,9 @@
                                                 <th class="text-dark">{{__('Quantity')}}</th>
                                                 <th class="text-dark">{{__('Rate')}}</th>
                                                 <th class="text-dark">{{__('Discount')}}</th>
-                                                <th class="text-dark">{{__('Tax')}}</th>
+                                                
                                                 <th class="text-dark">{{__('Chart Of Account')}}</th>
                                                 <th class="text-dark">{{__('Account Amount')}}</th>
-                                                <th class="text-dark">{{__('Description')}}</th>
                                                 <th class="text-end text-dark" width="12%">{{__('Price')}}<br>
                                                     <small class="text-danger font-weight-bold">{{__('after tax & discount')}}</small>
                                                 </th>
@@ -265,34 +264,16 @@
                                             @php
                                                 $totalQuantity=0;
                                                $totalRate=0;
-                                               $totalTaxPrice=0;
+                                              
                                                $totalDiscount=0;
-                                               $taxesData=[];
+                                              
                                             @endphp
 
 
 
                                             @foreach($items as $key =>$item)
 
-                                                {{-- @if(!empty($item->tax))
-                                                    @php
-                                                        $taxes=App\Models\Utility::tax($item->tax);
-                                                        $totalQuantity+=$item->quantity;
-                                                        $totalRate+=$item->price;
-                                                        $totalDiscount+=$item->discount;
-                                                        foreach($taxes as $taxe){
-                                                            $taxDataPrice=App\Models\Utility::taxRate($taxe->rate,$item->price,$item->quantity,$item->discount);
-                                                            if (array_key_exists($taxe->name,$taxesData))
-                                                            {
-                                                                $taxesData[$taxe->name] = $taxesData[$taxe->name]+$taxDataPrice;
-                                                            }
-                                                            else
-                                                            {
-                                                                $taxesData[$taxe->name] = $taxDataPrice;
-                                                            }
-                                                        }
-                                                    @endphp
-                                                @endif --}}
+                                               
 
                                                 @if(!empty($item->product_id))
                                                         <tr>
@@ -301,53 +282,15 @@
                                                             @php
                                                                 $productName = $item->product;
                                                                 $totalQuantity += $item->quantity;
-                                                        $totalRate += $item->price;
-                                                        $totalDiscount += $item->discount;
+                                                                $totalRate += $item->price;
+                                                                $totalDiscount += $item->discount;
                                                             @endphp
-                                                            <td>{{!empty($productName)?$productName->name:'-'}}</td>
-                                                            <td>{{ $item->quantity . ' (' . $productName->unit->name . ')' }}</td>
+                                                            <td>{{$productName->name}}</td>
+                                                            <td>{{ $item->quantity }}</td>
                                                             <td>{{\Auth::user()->priceFormat($item->price)}}</td>
                                                             <td>{{\Auth::user()->priceFormat($item->discount)}}</td>
 
-                                                            <td>
-                                                                @if (!empty($item->tax))
-                                                                    <table>
-                                                                        @php
-                                                                            $itemTaxes = [];
-                                                                            $getTaxData = Utility::getTaxData();
-
-                                                                            if (!empty($item->tax)) {
-                                                                                foreach (explode(',', $item->tax) as $tax) {
-                                                                                    $taxPrice = \Utility::taxRate($getTaxData[$tax]['rate'], $item->price, $item->quantity);
-                                                                                    $totalTaxPrice += $taxPrice;
-                                                                                    $itemTax['name'] = $getTaxData[$tax]['name'];
-                                                                                    $itemTax['rate'] = $getTaxData[$tax]['rate'] . '%';
-                                                                                    $itemTax['price'] = \Auth::user()->priceFormat($taxPrice);
-
-                                                                                    $itemTaxes[] = $itemTax;
-                                                                                    if (array_key_exists($getTaxData[$tax]['name'], $taxesData)) {
-                                                                                        $taxesData[$getTaxData[$tax]['name']] = $taxesData[$getTaxData[$tax]['name']] + $taxPrice;
-                                                                                    } else {
-                                                                                        $taxesData[$getTaxData[$tax]['name']] = $taxPrice;
-                                                                                    }
-                                                                                }
-                                                                                $item->itemTax = $itemTaxes;
-                                                                            } else {
-                                                                                $item->itemTax = [];
-                                                                            }
-                                                                        @endphp
-                                                                        @foreach ($item->itemTax as $tax)
-
-                                                                                <tr>
-                                                                                    <td>{{$tax['name'] .' ('.$tax['rate'] .')'}}</td>
-                                                                                    <td>{{ $tax['price']}}</td>
-                                                                                </tr>
-                                                                        @endforeach
-                                                                    </table>
-                                                                @else
-                                                                    -
-                                                                @endif
-                                                            </td>
+                                                            
 
                                                             @php
                                                                 $chartAccount = \App\Models\ChartOfAccount::find($item->chart_account_id);
@@ -356,19 +299,22 @@
                                                             <td>{{!empty($chartAccount) ? $chartAccount->name : '-'}}</td>
                                                             <td>{{\Auth::user()->priceFormat($item->amount)}}</td>
 
-                                                            <td>{{!empty($item->description)?$item->description:'-'}}</td>
+                                                          
 
-                                                            <td class="text-end">{{\Auth::user()->priceFormat(($item->price * $item->quantity - $item->discount) + $totalTaxPrice)}}</td>
+                                                            <td class="text-end">{{\Auth::user()->priceFormat(($item->price * $item->quantity - $item->discount))}}</td>
                                                             <td></td>
                                                         </tr>
                                                     @else
+
+
+
+                                                    
                                                     <tr>
                                                         <td>{{$key+1}}</td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
+                                                        
                                                         @php
                                                             $chartAccount = \App\Models\ChartOfAccount::find($item['chart_account_id']);
                                                         @endphp
@@ -392,49 +338,37 @@
                                                 <td><b>{{$totalQuantity}}</b></td>
                                                 <td><b>{{\Auth::user()->priceFormat($totalRate)}}</b></td>
                                                 <td><b>{{\Auth::user()->priceFormat($totalDiscount)}}</b></td>
-                                                <td><b>{{\Auth::user()->priceFormat($totalTaxPrice)}}</b></td>
+                                                
                                                 <td></td>
                                                 <td><b>{{\Auth::user()->priceFormat($bill->getAccountTotal())}}</b></td>
 
                                             </tr>
                                             <tr>
-                                                <td colspan="8"></td>
+                                                <td colspan="6"></td>
                                                 <td class="text-end"><b>{{__('Sub Total')}}</b></td>
                                                 <td class="text-end">{{\Auth::user()->priceFormat($bill->getSubTotal())}}</td>
                                             </tr>
 
                                                 <tr>
-                                                    <td colspan="8"></td>
+                                                    <td colspan="6"></td>
                                                     <td class="text-end"><b>{{__('Discount')}}</b></td>
                                                     <td class="text-end">{{\Auth::user()->priceFormat($bill->getTotalDiscount())}}</td>
                                                 </tr>
 
-                                            @if(!empty($taxesData))
-                                                @foreach($taxesData as $taxName => $taxPrice)
-                                                    <tr>
-                                                        <td colspan="8"></td>
-                                                        <td class="text-end"><b>{{$taxName}}</b></td>
-                                                        <td class="text-end">{{ \Auth::user()->priceFormat($taxPrice) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            @endif
+                                          
                                             <tr>
-                                                <td colspan="8"></td>
+                                                <td colspan="6"></td>
                                                 <td class="blue-text text-end"><b>{{__('Total')}}</b></td>
                                                 <td class="blue-text text-end">{{\Auth::user()->priceFormat($bill->getTotal())}}</td>
                                             </tr>
                                             <tr>
-                                                <td colspan="8"></td>
+                                                <td colspan="6"></td>
                                                 <td class="text-end"><b>{{__('Paid')}}</b></td>
                                                 <td class="text-end">{{\Auth::user()->priceFormat(($bill->getTotal()-$bill->getDue())-($bill->billTotalDebitNote()))}}</td>
                                             </tr>
+                                           
                                             <tr>
-                                                <td colspan="8"></td>
-                                                <td class="text-end"><b>{{__('Debit Note')}}</b></td>
-                                                <td class="text-end">{{\Auth::user()->priceFormat(($bill->billTotalDebitNote()))}}</td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="8"></td>
+                                                <td colspan="6"></td>
                                                 <td class="text-end"><b>{{__('Due')}}</b></td>
                                                 <td class="text-end">{{\Auth::user()->priceFormat($bill->getDue())}}</td>
                                             </tr>

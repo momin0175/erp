@@ -286,7 +286,7 @@
                                         @can('send bill')
                                             <a href="{{ route('invoice.sent', $invoice->id) }}" class="btn btn-sm btn-warning"
                                                 data-bs-toggle="tooltip" data-original-title="{{ __('Mark Sent') }}"><i
-                                                    class="ti ti-send mr-2"></i>{{ __('Send') }}</a>
+                                                    class="ti ti-send mr-2"></i>{{ __('Submit & Send') }}</a>
                                         @endcan
                                     @endif
                                 </div>

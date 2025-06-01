@@ -23,6 +23,7 @@ class ProductServiceCategory extends Model
         'product & service' => 'Product & Service',
         'income' => 'Income',
         'expense' => 'Expense',
+        'row product' => 'Row Product',
         'asset'=> 'Asset',
         'liability' => 'Liability',
         'equity' => 'Equity',

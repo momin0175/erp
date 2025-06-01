@@ -200,12 +200,12 @@
                                                     @endcan
                                                     @can('edit invoice')
                                                         <div class="action-btn me-2">
-                                                                <a href="{{ route('invoice.edit', \Crypt::encrypt($invoice->id)) }}"
-                                                                   class="mx-3 btn btn-sm align-items-center  bg-info" data-bs-toggle="tooltip" title="Edit "
-                                                                   data-original-title="{{ __('Edit') }}">
-                                                                    <i class="ti ti-pencil text-white"></i>
-                                                                </a>
-                                                            </div>
+                                                            <a href="{{ route('invoice.edit', \Crypt::encrypt($invoice->id)) }}"
+                                                                class="mx-3 btn btn-sm align-items-center  bg-info" data-bs-toggle="tooltip" title="Edit "
+                                                                data-original-title="{{ __('Edit') }}">
+                                                                <i class="ti ti-pencil text-white"></i>
+                                                            </a>
+                                                        </div>
                                                     @endcan
                                                     @can('delete invoice')
                                                         <div class="action-btn ">

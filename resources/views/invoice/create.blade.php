@@ -353,7 +353,51 @@
 
 
 
-        })
+        });
+
+         $(document).on('change', '.product_category', function() {
+            var category_id = $(this).val();
+            var url = $(this).data('url');
+            var itemSelect = $(this).closest('tr').find('.item');
+          
+            // Show loading state
+            itemSelect.html('<option value="">Loading...</option>');
+            
+            $.ajax({
+                url: url,
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': jQuery('#token').val()
+                },
+                data: {
+                    'category_id': category_id
+                },
+                success: function(response) {
+                    // Clear existing options
+                    itemSelect.empty();
+                    
+                    // Check if response is valid
+                    if(response && typeof response === 'object') {
+                        // Add default option
+                        itemSelect.append('<option value="">{{__("Select Item")}}</option>');
+                        
+                        // Add new options
+                        $.each(response, function(key, value) {
+                            itemSelect.append($('<option></option>').attr('value', key).text(value));
+                        });
+                    } else {
+                        itemSelect.append('<option value="">No items found</option>');
+                    }
+                    
+                    // Trigger select2 update
+                    itemSelect.trigger('change');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    itemSelect.empty().append('<option value="">Error loading items</option>');
+                }
+            });
+        });
 
         $(document).on('change', '.item', function () {
             // $('.item option').prop('disabled', false);
@@ -511,11 +555,12 @@
                         <table class="table mb-0 table-custom-style" data-repeater-list="items" id="sortable-table">
                             <thead>
                             <tr>
+                                <th>{{__('Category')}}<x-required></x-required></th>
                                 <th>{{__('Items')}}<x-required></x-required></th>
                                 <th>{{__('Quantity')}}<x-required></x-required></th>
                                 <th>{{__('Price')}}<x-required></x-required></th>
                                 <th>{{__('Discount')}}<x-required></x-required></th>
-                                <th>{{__('Tax')}} (%)</th>
+                               
                                 <th class="text-end">{{__('Amount')}} <br><small class="text-danger font-weight-bold">{{__('after tax & discount')}}</small></th>
                                 <th></th>
                             </tr>
@@ -523,14 +568,24 @@
 
                             <tbody class="ui-sortable" data-repeater-item>
                             <tr>
-
-                                <td width="25%" class="form-group pt-0">
-                                    {{ Form::select('item', $product_services,'', array('class' => 'form-control select2 item','data-url'=>route('invoice.product'),'required'=>'required')) }}
+                                <td width="20%" class="form-group pt-0">
+                                    <select name="product_category" class="form-control product_category" id="product_category"  data-url="{{ route('bill.getProduct') }}" required="required">
+                                        @foreach($product_category as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </select>
                                 </td>
+
+                                <td width="20%" class="form-group pt-0">
+                                    <select name="item" class="form-control item" id="item" data-url="{{ route('bill.product') }}" required="required">
+                                        <option value="">Select Product</option>
+                                    </select>
+                                </td>
+
                                 <td>
                                     <div class="form-group price-input input-group search-form">
                                         {{ Form::text('quantity','', array('class' => 'form-control quantity','required'=>'required','placeholder'=>__('Qty'),'required'=>'required')) }}
-                                        <span class="unit input-group-text bg-transparent"></span>
+                                       
                                     </div>
                                 </td>
 
@@ -538,23 +593,23 @@
                                 <td>
                                     <div class="form-group price-input input-group search-form">
                                         {{ Form::text('price','', array('class' => 'form-control price','required'=>'required','placeholder'=>__('Price'),'required'=>'required')) }}
-                                        <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
+                                        
                                     </div>
                                 </td>
                                 <td>
                                     <div class="form-group price-input input-group search-form">
                                         {{ Form::text('discount','', array('class' => 'form-control discount','required'=>'required','placeholder'=>__('Discount'))) }}
-                                        <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
+                                       
                                     </div>
                                 </td>
 
 
 
-                                <td>
+                                <td style="display:none;">
                                     <div class="form-group">
                                         <div class="input-group colorpickerinput">
                                             <div class="taxes"></div>
-                                            {{ Form::hidden('tax','', array('class' => 'form-control tax text-dark')) }}
+                                            
                                             {{ Form::hidden('itemTaxPrice','', array('class' => 'form-control itemTaxPrice')) }}
                                             {{ Form::hidden('itemTaxRate','', array('class' => 'form-control itemTaxRate')) }}
                                         </div>
@@ -568,14 +623,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <div class="form-group">
-                                        {{ Form::textarea('description', null, ['class'=>'form-control pro_description','rows'=>'2','placeholder'=>__('Description')]) }}
-                                    </div>
-                                </td>
-                                <td colspan="5"></td>
-                            </tr>
+                           
                             </tbody>
                             <tfoot>
                             <tr>
@@ -596,15 +644,7 @@
                                 <td class="text-end totalDiscount">0.00</td>
                                 <td></td>
                             </tr>
-                            <tr>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td><strong>{{__('Tax')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                <td class="text-end totalTax">0.00</td>
-                                <td></td>
-                            </tr>
+                           
                             <tr>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>

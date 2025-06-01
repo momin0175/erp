@@ -75,6 +75,7 @@ class BillController extends Controller
         }
     }
 
+  
     public function create($vendorId = 0)
     {
 
@@ -82,7 +83,7 @@ class BillController extends Controller
         {
             $customFields = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'bill')->get();
             $category     = ProductServiceCategory::where('created_by', \Auth::user()->creatorId())
-                ->whereNotIn('type', ['product & service', 'income',])
+                ->whereIn('type', ['product & service'])
                 ->get()->pluck('name', 'id');
             $category->prepend('Select Category', '');
 
@@ -116,6 +117,7 @@ class BillController extends Controller
     public function store(Request $request)
     {
 
+       
         if(\Auth::user()->can('create bill'))
         {
 
@@ -166,6 +168,7 @@ class BillController extends Controller
             $bill->type         =  'Bill';
             $bill->user_type         =  'vendor';
             $bill->due_date       = $request->due_date;
+           
             $bill->category_id    = !empty($request->category_id) ? $request->category_id :0;
             $bill->order_number   = !empty($request->order_number) ? $request->order_number : 0;
             $bill->created_by     = \Auth::user()->creatorId();
@@ -184,11 +187,17 @@ class BillController extends Controller
                     $billProduct->bill_id     = $bill->id;
                     $billProduct->product_id  = $products[$i]['item'];
                     $billProduct->quantity    = $products[$i]['quantity'];
-                    $billProduct->tax         = $products[$i]['tax'];
+                   /*  $billProduct->tax         = $products[$i]['tax']; */
                     $billProduct->discount    = $products[$i]['discount'];
                     $billProduct->price       = $products[$i]['price'];
-                    $billProduct->description = $products[$i]['description'];
+                    /* $billProduct->description = $products[$i]['description']; */
                     $billProduct->save();
+
+                     // update product and service
+                    $productService = ProductService::find($products[$i]['item']);
+                    $productService->quantity = $productService->quantity + $products[$i]['quantity'];
+                    $productService->save();
+                    //
                 }
 
                 $billTotal=0;
@@ -305,7 +314,7 @@ class BillController extends Controller
 
     public function show($ids)
     {
-
+        
         if(\Auth::user()->can('show bill'))
         {
             try {
@@ -316,7 +325,7 @@ class BillController extends Controller
 
             $id   = Crypt::decrypt($ids);
             $bill = Bill::with('debitNote' ,'payments.bankAccount','items.product.unit')->find($id);
-
+           
             if(!empty($bill) && $bill->created_by == \Auth::user()->creatorId())
             {
                 $billPayment = BillPayment::where('bill_id', $bill->id)->first();
@@ -327,6 +336,7 @@ class BillController extends Controller
                 $items     = [];
                 if(!empty($item) && count($item) > 0)
                 {
+                    
                     foreach ($item as $k=>$val)
                     {
                         if(!empty($accounts[$k]))
@@ -337,8 +347,8 @@ class BillController extends Controller
                         }
                         $items[]=$val;
                     }
-                }
-                else{
+                    
+                }else{
 
                     foreach ($accounts as $k=>$val){
                         $val1['chart_account_id']=$accounts[$k]['chart_account_id'];
@@ -349,10 +359,11 @@ class BillController extends Controller
                     }
                 }
 
-                $bill->customField = CustomField::getData($bill, 'bill');
+               /*  $bill->customField = CustomField::getData($bill, 'bill');
                 $customFields      = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'bill')->get();
-
-                return view('bill.view', compact('bill', 'vendor', 'items', 'billPayment', 'customFields'));
+                */
+               
+                return view('bill.view', compact('bill', 'vendor', 'items', 'billPayment'));
             }
             else
             {
@@ -679,6 +690,17 @@ class BillController extends Controller
 
         return json_encode($data);
     }
+
+        public function getProduct(Request $request)
+        {
+            $category_id = $request->category_id;
+            
+            $products = ProductService::where('category_id', $category_id)
+                        ->pluck('name', 'id')
+                        ->toArray();
+            
+            return response()->json($products);
+        }
 
     public function productDestroy(Request $request)
     {

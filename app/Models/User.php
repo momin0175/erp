@@ -41,6 +41,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_enable_login',
         'last_login_at',
         'created_by',
+        'company_title',
     ];
 
     protected $hidden = [
@@ -56,7 +57,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function getProfileAttribute()
     {
-
         if (!empty($this->avatar) && \Storage::exists($this->avatar)) {
             return $this->attributes['avatar'] = asset(\Storage::url($this->avatar));
         } else {
@@ -76,6 +76,13 @@ class User extends Authenticatable implements MustVerifyEmail
         } else {
             return $this->created_by;
         }
+    }
+
+    public function companyTitle()
+    {
+        $company_id = $this->created_by;
+        $companyTitle = User::where('id', $company_id)->pluck('company_title')->first();
+        return $companyTitle;
     }
 
     public function ownerId()
@@ -102,7 +109,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->lang;
     }
 
-    public function priceFormat($price)
+    public function priceFormat($amount)
+    {
+        return number_format($amount, 2) . ' /-';
+    }
+
+
+   /*  public function priceFormat($price)
     {
         $number = explode('.', $price);
         $length = strlen(trim($number[0]));
@@ -130,7 +143,8 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return (($settings['site_currency_symbol_position'] == "pre") ? $currency : '') . ($currency_space == 'withspace' ? ' ' : '') . $price . ($currency_space == 'withspace' ? ' ' : '') . (($settings['site_currency_symbol_position'] == "post") ? $currency : '');
-    }
+    
+    } */
 
 
     public function currencySymbol()

@@ -567,34 +567,47 @@
                                 <th>{{__('Quantity')}}<x-required></x-required></th>
                                 <th>{{__('Price')}}<x-required></x-required></th>
                                 <th>{{__('Discount')}}<x-required></x-required></th>
-                                <th>{{__('Tax')}}</th>
+                                
                                 <th class="text-end">{{__('Amount')}} </th>
                                 <th></th>
                             </tr>
                             </thead>
+                            
                             <tbody class="ui-sortable" data-repeater-item>
                             <tr>
-                                {{ Form::hidden('id',null, array('class' => 'form-control id')) }}
+                                {{-- Form::hidden('id',null, array('class' => 'form-control id')) --}}
+                                <input type="hidden" name="id" class="form-control id">
                                 <td width="25%" class="form-group pt-0">
-                                    {{ Form::select('item', $product_services,null, array('class' => 'form-control item select','data-url'=>route('invoice.product'))) }}
-
+                                    {{-- Form::select('item', $product_services,null, array('class' => 'form-control item select','data-url'=>route('invoice.product'))) --}}
+                                    <select name="item" class="form-control item select" data-url="{{ route('invoice.product') }}">
+                                        @foreach($product_services as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </select>
                                 </td>
                                 <td>
 
                                     <div class="form-group price-input input-group search-form">
-                                        {{ Form::text('quantity',null, array('class' => 'form-control quantity','required'=>'required','placeholder'=>__('Qty'),'required'=>'required')) }}
+                                        {{-- Form::text('quantity',null, array('class' => 'form-control quantity','required'=>'required','placeholder'=>__('Qty'),'required'=>'required')) --}}
+                                        
+                                        <input type="hidden" name="old_quantity" class="form-control quantity" placeholder="Qty" required>
+                                        <input type="text" name="quantity" class="form-control quantity" placeholder="Qty" required>
                                         <span class="unit input-group-text bg-transparent"></span>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="form-group price-input input-group search-form">
-                                        {{ Form::text('price',null, array('class' => 'form-control price','required'=>'required','placeholder'=>__('Price'),'required'=>'required')) }}
+                                        {{-- Form::text('price',null, array('class' => 'form-control price','required'=>'required','placeholder'=>__('Price'),'required'=>'required')) --}}
+                                      
+                                        <input type="text" name="price" class="form-control price" placeholder="Price" required>
                                         <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="form-group price-input input-group search-form">
-                                        {{ Form::text('discount',null, array('class' => 'form-control discount','required'=>'required','placeholder'=>__('Discount'))) }}
+                                        {{-- Form::text('discount',null, array('class' => 'form-control discount','required'=>'required','placeholder'=>__('Discount'))) --}}
+
+                                        <input type="text" name="discount" class="form-control discount" placeholder="Discount" required>
                                         <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
                                     </div>
                                 </td>
@@ -602,9 +615,14 @@
                                     <div class="form-group">
                                         <div class="input-group colorpickerinput">
                                             <div class="taxes"></div>
-                                            {{ Form::hidden('tax','', array('class' => 'form-control tax')) }}
-                                            {{ Form::hidden('itemTaxPrice','', array('class' => 'form-control itemTaxPrice')) }}
-                                            {{ Form::hidden('itemTaxRate','', array('class' => 'form-control itemTaxRate')) }}
+                                            {{-- Form::hidden('tax','', array('class' => 'form-control tax')) --}}
+                                            {{-- Form::hidden('itemTaxPrice','', array('class' => 'form-control itemTaxPrice')) --}}
+                                            {{-- Form::hidden('itemTaxRate','', array('class' => 'form-control itemTaxRate')) --}}
+
+                                            
+                                            <input type="hidden" name="itemTaxPrice" value="" class="form-control itemTaxPrice">
+                                            <input type="hidden" name="itemTaxRate" value="" class="form-control itemTaxRate">
+
                                         </div>
                                     </div>
                                 </td>
@@ -623,7 +641,9 @@
                             <tr>
                                 <td colspan="2">
                                     <div class="form-group">
-                                        {{ Form::textarea('description', null, ['class'=>'form-control pro_description','rows'=>'2','placeholder'=>__('Description')]) }}
+                                        {{-- Form::textarea('description', null, ['class'=>'form-control pro_description','rows'=>'2','placeholder'=>__('Description')]) --}}
+                                        <textarea hidden name="description" class="form-control pro_description" rows="2" placeholder="Description"></textarea>
+
                                     </div>
                                 </td>
                                 <td colspan="5"></td>
@@ -648,15 +668,7 @@
                                 <td class="text-end totalDiscount">0.00</td>
                                 <td></td>
                             </tr>
-                            <tr>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td><strong>{{__('Tax')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                <td class="text-end totalTax">0.00</td>
-                                <td></td>
-                            </tr>
+                            
                             <tr>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>

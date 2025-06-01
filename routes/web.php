@@ -107,6 +107,7 @@ use App\Http\Controllers\ProductServiceCategoryController;
 use App\Http\Controllers\ProductServiceController;
 use App\Http\Controllers\ProductServiceUnitController;
 use App\Http\Controllers\ProductStockController;
+use App\Http\Controllers\ProductionProductController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectReportController;
 use App\Http\Controllers\ProjectstagesController;
@@ -445,6 +446,7 @@ Route::group(['middleware' => ['verified']], function () {
 
     //Product Stock
     Route::resource('productstock', ProductStockController::class)->middleware(['auth', 'XSS']);
+    Route::resource('production', ProductionProductController::class)->middleware(['auth', 'XSS']);
 
     //Customer
     Route::group(
@@ -609,6 +611,7 @@ Route::group(['middleware' => ['verified']], function () {
             Route::post('bill/{id}/payment', [BillController::class, 'createPayment'])->name('bill.payment');
             Route::post('bill/{id}/payment/{pid}/destroy', [BillController::class, 'paymentDestroy'])->name('bill.payment.destroy');
             Route::get('bill/items', [BillController::class, 'items'])->name('bill.items');
+            Route::post('bill/get-product', [BillController::class, 'getProduct'])->name('bill.getProduct');
             Route::resource('bill', BillController::class);
         }
     );

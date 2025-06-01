@@ -34,6 +34,7 @@ class CreateUsersTable extends Migration
             $table->integer('is_active')->default(1);
             $table->datetime('last_login_at')->nullable();
             $table->integer('created_by')->default(0);
+            $table->string('company_title')->nullable();
             $table->rememberToken();
             $table->timestamps();
         }
